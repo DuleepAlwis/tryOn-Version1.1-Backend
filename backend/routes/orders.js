@@ -2,7 +2,7 @@ const express = require("express");
 const crypto = require('crypto');
 //const bcrypt = require("bcrypt");
 var nodemailer = require('nodemailer');
-
+const mailgun = require("mailgun-js");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const order = require("../models/order");
@@ -36,29 +36,40 @@ router.post("/addOrder", customerAuth, (req, res, next) => {
         .then((result) => {
             console.log(result);
 
-
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
             var transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     user: 'duleepalwis0@gmail.com',
-                    pass: 'duleep3alwis'
+                    pass: 'duleep222alwis'
                 }
             });
+            /*  const DOMAIN = 'sandbox71b48e05547f4594875ab17de849ab4e.mailgun.org';
+              const api_key = 'adf33639f8665aed516fcc8a675051a2-16ffd509-776b6032';
+              const mg = mailgun({apiKey: api_key, domain: DOMAIN});
+              const data = {
+                  from: 'Excited User <me@samples.mailgun.org>',
+                  to: req.body.email+', YOU@sandbox71b48e05547f4594875ab17de849ab4e.mailgun.org',
+                  subject: 'You placed an order',
+                  html: '<p><h3>You placed an order</h3>Date : ' + req.body.date + ' Time : ' + req.body.time + ' ' + '</p>' + '<p><h3>Rs. ' + req.body.totalPrice + '</h3></p>'
+              };
+              mg.messages().send(data, function (error, body) {
+                  console.log(body);
+              });*/
+            /*  var mailOptions = {
+                  from: '<anonymous>',
+                  to: req.body.email,
+                  subject: 'You placed an order',
+                  html: '<p><h3>You placed an order</h3>Date : ' + req.body.date + ' Time : ' + req.body.time + ' ' + '</p>' + '<p><h3>Rs. ' + req.body.totalPrice + '</h3></p>'
+              };
 
-            var mailOptions = {
-                from: '<anonymous>',
-                to: req.body.email,
-                subject: 'You placed an order',
-                html: '<p><h3>You placed an order</h3>Date : ' + req.body.date + ' Time : ' + req.body.time + ' ' + '</p>' + '<p><h3>Rs. ' + req.body.totalPrice + '</h3></p>'
-            };
-
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    console.log('Email sent: ' + info.response);
-                }
-            });
+              transporter.sendMail(mailOptions, function(error, info) {
+                  if (error) {
+                      console.log(error);
+                  } else {
+                      console.log('Email sent: ' + info.response);
+                  }
+              });*/
             updateQuantity(req.body.items, res);
 
             /*res.status(200).json({
@@ -96,6 +107,7 @@ router.post("/retrieveCustomerOrders", customerAuth, (req, res, next) => {
 });
 
 router.post("/getOrder", customerAuth, (req, res, next) => {
+    //console.log(req.body.id);
     order.findById({ _id: req.body.id }, (err, order) => {
         let message = 0;
         console.log(order);
@@ -133,18 +145,18 @@ router.post("/getAllOrder", (req, res, next) => {
 
 //router.post("/quantityUpdate", (req, res, next) => {
 //console.log(req.body.products);
-function updateQuantity(items, res) {
-    let products = JSON.parse(req.body.products);
-    /*console.log(products);
+function updateQuantity(itemsArr, res) {
+    let products = JSON.parse(itemsArr); //JSON.parse(req.body.products);
+    console.log(products);
     console.log(typeof((products[0])));
-    console.log(typeof(products));*/
+    console.log(typeof(products));
 
     let i = products.length;
     let j = 0;
     let items = [];
     let num = i;
     for (j = 0; j < i; j++) {
-        items.push(products[j]);
+        items.push(JSON.parse(products[j]));
     }
 
     //console.log(items);
@@ -169,6 +181,9 @@ function updateQuantity(items, res) {
             }
         }
         // console.log(size);
+        console.log(items);
+
+        console.log(items[j].category);
         switch (items[j].category) {
             case "Shirts":
 
@@ -198,6 +213,8 @@ function updateQuantity(items, res) {
                     .then(
                         result => {
                             console.log(result);
+                            num = num - 1;
+
                             res.status(200).json({
                                 message: 1
                             });
@@ -215,10 +232,12 @@ function updateQuantity(items, res) {
 
             case "Caps":
 
-                Caps.updateOne({ _id: items[j].productId }, { "$inc": { quantity: qunat } })
+                Caps.updateOne({ _id: items[j].productId }, { "$inc": { quantity: quant } })
                     .then(
                         result => {
                             console.log(result);
+                            num = num - 1;
+
                             res.status(200).json({
                                 message: 1
                             });
@@ -236,10 +255,12 @@ function updateQuantity(items, res) {
 
             case "HandBags":
 
-                HandBags.updateOne({ _id: items[j].productId }, { "$inc": { quantity: qunat } })
+                HandBags.updateOne({ _id: items[j].productId }, { "$inc": { quantity: quant } })
                     .then(
                         result => {
                             console.log(result);
+                            num = num - 1;
+
                             res.status(200).json({
                                 message: 1
                             });
@@ -257,10 +278,12 @@ function updateQuantity(items, res) {
 
             case "Gloves":
 
-                Gloves.updateOne({ _id: items[j].productId }, { "$inc": { quantity: qunat } })
+                Gloves.updateOne({ _id: items[j].productId }, { "$inc": { quantity: quant } })
                     .then(
                         result => {
                             console.log(result);
+                            num = num - 1;
+
                             res.status(200).json({
                                 message: 1
                             });
@@ -277,12 +300,19 @@ function updateQuantity(items, res) {
                 break;
 
             case "Belts":
+                console.log(items[j]);
+                console.log(items[j].name + " " + quant);
 
-                Belts.updateOne({ _id: items[j].productId }, { "$inc": { quantity: qunat } })
+                Belts.updateOne({ _id: items[j].productId }, { "$inc": { quantity: quant } })
                     .then(
                         result => {
-                            console.log(result);
-                            res.status(200).json({
+                            console.log("Updated");
+                            num = num - 1;
+                            // console.log(quant);
+                            //console.log(items[j].name + " " + quant);
+
+                            //console.log(result);
+                            return res.status(200).json({
                                 message: 1
                             });
                         }
@@ -290,7 +320,7 @@ function updateQuantity(items, res) {
                     .catch(
                         result => {
                             console.log(result);
-                            res.status(200).json({
+                            return res.status(200).json({
                                 message: 0
                             });
                         }
@@ -307,15 +337,12 @@ function updateQuantity(items, res) {
         }
 
     }
-    if (num == 0) {
+    if (num > 0) {
         res.status(200).json({
             message: 1
-        });
-    } else {
-        res.status(200).json({
-            message: 0
         });
     }
 }
 //});
+
 module.exports = router;
