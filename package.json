@@ -38,7 +38,7 @@
     "jshint": "^2.10.2",
     "jsonwebtoken": "^8.5.0",
     "mailgun-js": "^0.22.0",
-    "mongoose": "^5.4.19",
+    "mongoose": "^5.7.5",
     "mongoose-unique-validator": "^2.0.2",
     "multer": "^1.4.1",
     "node": "^11.11.0",
