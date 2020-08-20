@@ -27,7 +27,7 @@
     "@schematics/angular": "^7.3.5",
     "@schematics/update": "^0.13.5",
     "@toverux/ngx-sweetalert2": "^4.0.0",
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
